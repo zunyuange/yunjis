@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .title {
+            padding: 1rem 0.75rem 0.25rem;
+            font-size: 0.9rem;
+            font-weight: bold;
+            color: #000;
+            text-align: center;
+            background-color: #fff;
+        }
+        
+        .info {
+            font-size: 0.7rem;
+            color: #555;
+            width: 100%;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .time {
+            margin-left: auto;
+        }
+        
+        .content {
+            font-size: 0.8rem;
+            color: #333;
+            padding: 0.5rem 0.75rem;
+            background-color: #fff;
+        }
+        
+        p {
+            font-size: inherit;
+            color: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="title">{{news.title}}</div>
+        <div class="content" v-html="news.content"></div>
+        <div class="info">
+            <div class="editor">{{news.editor}}</div>
+            <div class="time">{{news.time}}</div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        var id = api.pageParam.id;
+        app.getDetail(id);
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            news: {}
+        },
+        methods: {
+            getDetail(id) {
+                _ajax({
+                    url: '/api/index/newsDetail',
+                    data: {
+                        id: id
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.news = res.data;
+                        } else {
+                            _msg(res.msg);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

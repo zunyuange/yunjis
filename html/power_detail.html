@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .image {
+            width: 100%;
+            height: 9rem;
+        }
+        
+        .info {
+            width: 100%;
+            background-color: #fff;
+            padding: 0.75rem;
+        }
+        
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+        
+        .flex-right {
+            margin-left: auto;
+        }
+        
+        .title {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .price {
+            color: #ec0101;
+            font-size: 0.9rem;
+        }
+        
+        .content {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .btn {
+            width: 100%;
+            height: 2.75rem;
+            line-height: 2.75rem;
+            box-sizing: content-box;
+            text-align: center;
+            color: #fff;
+            background-color: #cd0a0a;
+            font-size: 0.9rem;
+            position: fixed;
+            left: 0;
+            bottom: 0;
+        }
+        
+        .btn.nonum {
+            background-color: #c3c3c3;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <img class="image" :src="power.image" alt="">
+        <div class="info">
+            <div class="title">{{power.title}}</div>
+            <div class="flex">
+                <div class="price">{{power.price}} <span style="font-size: 0.8em;">USDT/积分</span></div>
+                <div class="flex-right">库存余量：{{power.num}}个</div>
+            </div>
+            <div class="flex">
+                <div>单节点算力：{{power.power}}T</div>
+                <div class="flex-right">托管年限：{{power.years}}年</div>
+            </div>
+        </div>
+        <div class="content" v-html="power.content"></div>
+        <div style="height: 3.5rem;"></div>
+        <div class="btn" @click="goBuy(power.id);" v-if="power.num > 0">立即购买</div>
+        <div class="btn nonum" v-else>已售罄</div>
+    </div>
+    <div id="$footer"></div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+
+        var id = api.pageParam.id;
+        app.getDetail(id);
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            power: {}
+        },
+        methods: {
+            getDetail(id) {
+                _ajax({
+                    url: '/api/index/powerDetail',
+                    data: {
+                        id: id
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.power = res.data;
+                        } else {
+                            _msg(res.msg);
+                        }
+                    }
+                }, 1);
+            },
+            goBuy(id) {
+                api.openTabLayout({
+                    name: 'buy',
+                    url: 'widget://html/buy.html',
+                    title: '购买产品',
+                    pageParam: {
+                        id: id
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff"
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>

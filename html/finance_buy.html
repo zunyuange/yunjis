@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/mobileselect.css" />
+    <style>
+        .main {
+            width: 100%;
+            padding: 0 0.75rem;
+            background-color: #fff;
+        }
+        
+        .row {
+            display: flex;
+            padding: 0.75rem;
+        }
+        
+        .row+.row {
+            border-top: 1px solid #dcdcdc;
+        }
+        
+        .label {}
+        
+        .info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #dcdcdc;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .num {
+            margin: 0 0.5rem;
+        }
+        
+        .buy {
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        
+        .info input {
+            height: 100%;
+            text-align: right;
+        }
+        
+        .tips {
+            padding: 1rem 0.75rem 0;
+            text-align: center;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <div class="row">
+                <div class="label">产品名称</div>
+                <div class="info">{{row.title}}</div>
+            </div>
+            <div class="row">
+                <div class="label">收益率</div>
+                <div class="info aui-text-danger">{{row.rate}}%</div>
+            </div>
+            <div class="row">
+                <div class="label">购买金额</div>
+                <div class="info">
+                    <input type="number" placeholder="请输入" v-model="num">
+                </div>
+            </div>
+            <div class="row">
+                <div class="label">交易密码</div>
+                <div class="info">
+                    <input type="password" placeholder="请输入" v-model="paypass">
+                </div>
+            </div>
+        </div>
+        <div class="tips">{{row.min}}FIL起投/锁定{{row.days}}天/到期自动释放</div>
+        <div class="buy">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="buy">购买</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/mobileselect.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        var id = api.pageParam.id || 1;
+        app.getDetail(id);
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            row: {},
+            num: '',
+            paypass: ''
+        },
+        methods: {
+            getDetail(id) {
+                _ajax({
+                    url: '/api/index/financeDetail',
+                    data: {
+                        id: id
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.row = res.data;
+                        } else {
+                            _msg(res.msg);
+                        }
+                    }
+                }, 1);
+            },
+            buy() {
+                if (!this.num) return _msg('请输入购买金额');
+                if (this.num < this.row.min) return _msg('产品' + this.row.min + 'FIL起投');
+                if (!this.paypass) return _msg('请输入交易密码');
+                _ajax({
+                    url: '/api/user/buyFinance',
+                    data: {
+                        id: this.row.id,
+                        num: this.num,
+                        paypass: this.paypass
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        },
+        watch: {
+
+        },
+        mounted() {
+
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/mobileselect.css" />
+    <style>
+        .list {
+            background-color: #fff;
+            padding: 3rem 0.75rem 0;
+        }
+        
+        .row {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem 0.25rem;
+            position: relative;
+        }
+        
+        .row+.row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            left: 0;
+            top: 0;
+            border-top: 1px solid #dcdcdc;
+            transform: scale(0.5);
+            transform-origin: 0 0;
+        }
+        
+        .info {
+            flex: 1;
+        }
+        
+        .desc {
+            color: #000;
+            margin-bottom: 0.25rem;
+        }
+        
+        .time {
+            font-size: 0.7rem;
+            color: #666;
+        }
+        
+        .num {
+            font-size: 1rem;
+            margin-left: 0.75rem;
+            color: #333;
+        }
+        
+        .num.active {
+            color: #1089ff;
+        }
+        
+        .filter {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            height: 3rem;
+            background-color: #eee;
+            padding: 0 1rem;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .type {
+            margin-left: auto;
+            font-size: 0.9rem;
+        }
+        
+        .date {
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .icon {
+            width: 1rem;
+            height: 1rem;
+            margin-left: 0.25rem;
+        }
+        
+        .count {
+            display: flex;
+            font-size: 0.7rem;
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="filter">
+            <div>
+                <div class="date">
+                    {{date}}
+                    <img class="icon" src="../image/icon_up.png" alt="">
+                </div>
+                <div class="count">
+                    <div>收入 +{{in_num}}</div>
+                    <div class="aui-margin-l-15">支出 -{{out_num}}</div>
+                </div>
+            </div>
+            <div class="type">{{type=='score' ? '积分' : type}}</div>
+        </div>
+        <div class="list">
+            <div class="row" v-for="(item,index) in list">
+                <div class="info">
+                    <div class="desc">{{item.remark}}</div>
+                    <div class="time">{{item.time}}</div>
+                </div>
+                <div class="num" :class="{active: item.money > 0}">{{item.money > 0 ? '+' : ''}}{{item.money}}</div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/mobileselect.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.type = api.pageParam.type || 'USDT';
+        app.event = api.pageParam.event || '';
+
+        app.getList();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            date: '',
+            type: 'USDT',
+            list: [],
+            in_num: 0,
+            out_num: 0,
+            event: ''
+        },
+        methods: {
+            getList() {
+                _ajax({
+                    url: '/api/user/moneyLog',
+                    data: {
+                        date: this.date,
+                        type: this.type,
+                        event: this.event
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = res.data.list;
+                            this.in_num = res.data.in;
+                            this.out_num = res.data.out;
+                        }
+                    }
+                }, 1);
+            }
+        },
+        mounted() {
+            var year = new Date().getFullYear(),
+                month = new Date().getMonth() + 1,
+                data = [];
+            this.date = year + '-' + ('0' + month).slice(-2);
+            while (year >= 2020) {
+                var v = {
+                    id: year,
+                    value: year,
+                    childs: []
+                };
+                var i = 1,
+                    max = data.length == 0 ? month : 12;
+                while (i <= max) {
+                    v.childs.push({
+                        id: i,
+                        value: ('0' + i).slice(-2)
+                    });
+                    i++;
+                }
+                data.push(v);
+                year--;
+            }
+
+            var selectDate = new MobileSelect({
+                trigger: ".date",
+                title: "日期",
+                ensureBtnColor: "#1089ff",
+                triggerDisplayData: false,
+                wheels: [{
+                    data: data
+                }, ],
+                position: [0, month - 1],
+                callback: function(indexArr, data) {
+                    console.log(JSON.stringify(data));
+                    app.date = data[0].value + '-' + data[1].value;
+                    app.getList();
+                },
+            });
+        }
+    })
+</script>
+
+</html>

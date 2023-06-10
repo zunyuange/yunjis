@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .content {
+            font-size: 0.8rem;
+            color: #333;
+            padding: 0.5rem 0.75rem;
+            background-color: #fff;
+            word-break: break-all;
+        }
+        
+        p {
+            font-size: inherit;
+            color: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="content" v-html="question"></div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ajax({
+            url: '/api/index/question',
+            success: res => {
+                if (res.code == 1) {
+                    app.question = res.data;
+                }
+            }
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            question: ''
+        }
+    })
+</script>
+
+</html>

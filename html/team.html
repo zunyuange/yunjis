@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .top {
+            width: 100%;
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+            background-color: #eee;
+            padding: 0 1rem;
+            justify-content: space-between;
+        }
+        
+        .list {
+            padding: 0.75rem;
+        }
+        
+        .row {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+            background-color: #fff;
+            font-size: 0.7rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .row+.row {
+            margin-top: 0.5rem;
+        }
+        
+        .info {
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            color: #000;
+            margin-bottom: 0.25rem;
+        }
+        
+        .contact {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .time {
+            color: #555;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="top">
+            <div class="num">邀请人数：{{list.length}}</div>
+            <div class="count">团队算力：{{user.TP || 0}}T</div>
+        </div>
+        <div style="height: 2.5rem;"></div>
+        <div class="list">
+            <div class="row" v-for="(item,index) in list">
+                <div class="info">
+                    <div>ID:{{item.id}} <span class="aui-label aui-label-info" v-show="item.level_name">{{item.level_name}}</span></div>
+                    <div>团队算力: {{item.TP}}T</div>
+                </div>
+                <div class="contact">
+                    <div>Tel:{{item.mobile}}</div>
+                    <div class="time">邀请时间：{{item.time}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.getTeam();
+        app.user = $api.getStorage('user') || {};
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            list: [],
+            user: {}
+        },
+        methods: {
+            getTeam() {
+                _ajax({
+                    url: '/api/user/team',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = res.data;
+                        }
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 1rem;
+        }
+        
+        .label {
+            margin-right: 0.75rem;
+            line-height: 2.5rem;
+        }
+        
+        .content {
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+        }
+        
+        .content>input {
+            text-align: right;
+            height: 2.5rem;
+        }
+        
+        .address {
+            padding-right: 0.5rem;
+            position: relative;
+            height: 2rem;
+            line-height: 2rem;
+        }
+        
+        .address::after {
+            content: "";
+            width: 0.4rem;
+            height: 0.4rem;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            margin-top: -0.2rem;
+            border: 1px solid #333;
+            border-left: none;
+            border-bottom: none;
+            transform: rotate(45deg);
+            transform-origin: center center;
+        }
+        
+        .address-code {
+            font-size: 0.6rem;
+            /* text-align: left; */
+            color: #555;
+            line-height: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .current {
+            padding: 0.5rem 0.5rem;
+            font-size: 0.7rem;
+            color: #555;
+        }
+        
+        .btn {
+            padding: 1.5rem 1rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">对方手机号</div>
+                <div class="content">
+                    <input type="number" v-model="mobile" placeholder="请输入" @blur="getUser">
+                </div>
+            </div>
+            <div class="current">对方姓名/昵称：{{user.is_realname ? user.realname : user.nickname}}</div>
+            <div class="form-row">
+                <div class="label">转账金额</div>
+                <div class="content">
+                    <input type="number" v-model="money" placeholder="请输入">
+                </div>
+            </div>
+            <div class="current">我的积分: <span class="num">{{num}}</span></div>
+            <div class="form-row">
+                <div class="label">交易密码</div>
+                <div class="content">
+                    <input type="password" v-model="paypass" placeholder="请输入">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">确认</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        var user = $api.getStorage('user');
+        if (user) {
+            app.num = user.score;
+        }
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {},
+            mobile: '',
+            money: '',
+            paypass: '',
+            num: 0
+        },
+        methods: {
+            getUser() {
+                if (this.mobile.length != 11) return _msg('请输入正确的手机号');
+                _ajax({
+                    url: '/api/user/getUserByMobile',
+                    data: {
+                        mobile: this.mobile
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.user = res.data;
+                        } else {
+                            _msg(res.msg);
+                            this.mobile = '';
+                        }
+                    }
+                });
+            },
+            save() {
+                if (!this.mobile) return _msg('请输入对方手机号');
+                if (this.money <= 0 || this.money > this.num) return _msg('转账金额错误');
+                if (!this.paypass) return _msg('请输入交易密码');
+                _ajax({
+                    url: '/api/user/transfer',
+                    data: {
+                        mobile: this.mobile,
+                        num: this.money,
+                        paypass: this.paypass
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        },
+        mounted() {
+
+        }
+    })
+</script>
+
+</html>

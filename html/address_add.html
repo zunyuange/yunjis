@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 1rem;
+        }
+        
+        .label {
+            margin-right: 0.75rem;
+            line-height: 2.5rem;
+        }
+        
+        .content {
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+        }
+        
+        .content>input {
+            text-align: right;
+            height: 2.5rem;
+        }
+        
+        .btn {
+            padding: 1.5rem 1rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">钱包备注</div>
+                <div class="content">
+                    <input type="text" placeholder="请输入钱包备注" maxlength="16" v-model="name">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">钱包地址</div>
+                <div class="content">
+                    <input type="text" placeholder="请输入钱包地址" v-model="address">
+                </div>
+            </div>
+        </div>
+
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">确认</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.id = api.pageParam.id || 0;
+        app.name = api.pageParam.name || '';
+        app.address = api.pageParam.address || '';
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            id: 0,
+            name: '',
+            address: ''
+        },
+        methods: {
+            save() {
+                if (!this.name) return _msg('请输入钱包备注');
+                if (!this.address) return _msg('请输入钱包地址');
+                _ajax({
+                    url: '/api/user/setWallet',
+                    data: {
+                        id: this.id,
+                        name: this.name,
+                        address: this.address
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            api.sendEvent({
+                                name: 'set_wallet'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

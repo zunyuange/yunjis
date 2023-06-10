@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .main {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 4rem 2rem;
+            align-items: center;
+        }
+        
+        .name {
+            text-align: center;
+            font-size: 1rem;
+            padding: 0.75rem 0;
+        }
+        
+        .num {
+            font-size: 2.4rem;
+            font-weight: 500;
+            text-align: center;
+        }
+        
+        .detail {
+            text-align: center;
+            color: #1089ff;
+        }
+        
+        .btn {
+            margin-top: auto;
+            width: 10rem;
+        }
+        
+        .aui-btn+.aui-btn {
+            margin-top: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <div class="name">{{type=='score' ? '积分' : type}}</div>
+            <div class="num">{{money}}</div>
+            <div class="detail" @click="goWalletLog();">查看明细></div>
+            <div class="btn">
+                <a class="aui-btn aui-btn-block aui-btn-success" v-show="type == 'USDT' || type == 'FIL'" @click="goRecharge();">充值</a>
+                <a class="aui-btn aui-btn-block aui-btn-warning" v-show="type == 'score'" @click="goTransfer();">转账</a>
+                <a class="aui-btn aui-btn-block aui-btn-primary" v-show="type == 'score'" @click="goExchange();">兑换</a>
+                <a class="aui-btn aui-btn-block aui-btn-info" v-show="type != 'score'" @click="goWithdraw();">提现</a>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.type = api.pageParam.type || 'USDT';
+        var user = $api.getStorage('user');
+        app.money = user[app.type];
+
+        api.addEventListener({
+            name: 'viewappear'
+        }, function(ret) {
+            var user = $api.getStorage('user');
+            app.money = user[app.type];
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            type: 'USDT',
+            money: ''
+        },
+        methods: {
+            goWalletLog() {
+                api.openTabLayout({
+                    name: 'wallet_log',
+                    url: 'widget://html/wallet_log.html',
+                    title: '账单',
+                    pageParam: {
+                        type: this.type
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goRecharge() {
+                api.openTabLayout({
+                    name: 'recharge',
+                    url: 'widget://html/recharge.html',
+                    title: '充值',
+                    pageParam: {
+                        type: this.type
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goTransfer() {
+                api.openTabLayout({
+                    name: 'transfer',
+                    url: 'widget://html/transfer.html',
+                    title: '转账',
+                    pageParam: {},
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goExchange() {
+                api.openTabLayout({
+                    name: 'exchange',
+                    url: 'widget://html/exchange.html',
+                    title: '兑换',
+                    pageParam: {},
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goWithdraw() {
+                api.openTabLayout({
+                    name: 'withdraw',
+                    url: 'widget://html/withdraw.html',
+                    title: '提现',
+                    pageParam: {
+                        type: this.type
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>

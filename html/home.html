@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/swiper.css" />
+    <style>
+        .swiper-slide {
+            width: 100%;
+            height: 9rem;
+        }
+        
+        .swiper-slide>img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .swiper-container {
+            width: 100%;
+            height: 9rem;
+        }
+        
+        .swiper-container {
+            --swiper-theme-color: #ff6600;
+            --swiper-pagination-color: #00ff33;
+        }
+        
+        main {
+            padding: 0.75rem;
+        }
+        
+        .notice {
+            width: 100%;
+            height: 2rem;
+            line-height: 2rem;
+            background-color: #fff;
+            /* color: #1089ff; */
+            padding: 0 0.5rem;
+            border-radius: 0.25rem;
+        }
+        
+        .data {
+            width: 100%;
+            display: flex;
+            margin-top: 0.75rem;
+            border-radius: 0.25rem;
+            background-color: #fff;
+        }
+        
+        .data-item {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem;
+        }
+        
+        .data-name {
+            font-size: 0.7rem;
+        }
+        
+        .data-num {
+            font-size: 0.9rem;
+        }
+        
+        .list {
+            width: 100%;
+        }
+        
+        .list-title {
+            padding: 0.5rem 0;
+            font-weight: bold;
+        }
+        
+        .news {
+            width: 100%;
+            background-color: #fff;
+            padding: 0.5rem 0.75rem;
+            display: flex;
+            align-items: center;
+            border-radius: 0.25rem;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .news+.news {
+            margin-top: 0.5rem;
+        }
+        
+        .news-img {
+            width: 5rem;
+            height: 3.5rem;
+            margin-right: 0.5rem;
+            object-fit: cover;
+        }
+        
+        .news-detail {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 3.5rem;
+        }
+        
+        .news-title {
+            color: #000;
+        }
+        
+        .news-info {
+            width: 100%;
+            margin-top: auto;
+            display: flex;
+            align-items: center;
+            font-size: 0.6rem;
+            color: #555;
+        }
+        
+        .news-time {
+            margin-left: auto;
+        }
+        
+        .box {
+            width: 100%;
+            height: 100vh;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 99;
+            padding: 3rem 1.5rem;
+        }
+        
+        .box-body {
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+            border-radius: 0.25rem;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .box-head {
+            height: 2.25rem;
+            line-height: 2.25rem;
+            text-align: center;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .box-content {
+            flex: 1;
+            padding: 0.25rem 0.5rem;
+            overflow-x: hidden;
+            word-break: break-all;
+            white-space: pre-wrap;
+        }
+        
+        .box-foot {
+            height: 2.25rem;
+            line-height: 2.25rem;
+            color: #1089ff;
+            text-align: center;
+            border-top: 1px solid #dcdcdc;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="swiper-container">
+            <div class="swiper-wrapper">
+                <div class="swiper-slide" v-for="(item,index) in banner" @click="goNewsDetail(item.id);">
+                    <img :src="item.image" alt="">
+                </div>
+            </div>
+            <div class="swiper-pagination"></div>
+        </div>
+        <main>
+            <div class="notice" @click="showNotice">
+                <marquee>{{notice}}</marquee>
+            </div><!-- 
+            <div class="data">
+                <div class="data-item" @click="goFIL(1)">
+                    <div class="data-name"><b style="font-size: 1.2em;">BTC</b>/USDT</div>
+                    <div class="data-num aui-text-success">{{btc || '-'}}</div>
+                    <div class="aui-text-success aui-font-size-12">{{btc_c > 0 ? '+' : ''}}{{btc_c || '-'}}%</div>
+                </div>
+                <div class="data-item" @click="goFIL(2)">
+                    <div class="data-name"><b style="font-size: 1.2em;">ETH</b>/USDT</div>
+                    <div class="data-num aui-text-success">{{eth || '-'}}</div>
+                    <div class="aui-text-success aui-font-size-12">{{eth_c > 0 ? '+' : ''}}{{eth_c || '-'}}%</div>
+                </div>
+                <div class="data-item" @click="goFIL(3)">
+                    <div class="data-name"><b style="font-size: 1.2em;">FIL</b>/USDT</div>
+                    <div class="data-num aui-text-success">{{fil || '-'}}</div>
+                    <div class="aui-text-success aui-font-size-12">{{fil_c > 0 ? '+' : ''}}{{fil_c || '-'}}%</div>
+                </div>
+            </div> -->
+            <div class="list">
+                <div class="list-title">IPFS最新资讯</div>
+                <div class="news" v-for="item in list" @click="goNewsDetail(item.id);">
+                    <img class="news-img" :src="item.image" alt="">
+                    <div class="news-detail">
+                        <div class="news-title aui-ellipsis-2">{{item.title}}</div>
+                        <div class="news-info">
+                            <div class="news-editor">{{item.editor}}</div>
+                            <div class="news-time">{{item.time}}</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/swiper.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+        permission();
+
+        if ($api.getStorage('token')) {
+            doLogin();
+        } else {
+            app.goLogin();
+        }
+
+        api.addEventListener({
+            name: 'update_userinfo'
+        }, function(ret) {
+            getUserInfo();
+        });
+
+        api.addEventListener({
+            name: 'tabframe'
+        }, function(ret) {
+            switch (ret.name) {
+                case 'home':
+                    break;
+                case 'power':
+                    break;
+                case 'finance':
+                    api.execScript({
+                        frameName: 'finance',
+                        script: 'getFinanceData();'
+                    });
+                    break;
+                case 'user':
+                    api.execScript({
+                        frameName: 'user',
+                        script: 'getUserinfo();'
+                    });
+                    break;
+            }
+        });
+
+        api.setRefreshHeaderInfo({
+            // loadingImg: 'widget://image/refresh.png',
+            bgColor: 'rgba(0,0,0,0)',
+            textColor: '#555',
+            textDown: '下拉刷新...',
+            textUp: '松开刷新...'
+        }, function(ret, err) {
+            app.getPageData();
+            setTimeout(function() {
+                api.refreshHeaderLoadDone();
+            }, 1500);
+        });
+
+        app.getPageData();
+
+        getRealTimeData();
+        setInterval(function() {
+            getRealTimeData();
+        }, 30000);
+    };
+    var mySwiper;
+    const app = new Vue({
+        el: '#app',
+        data: {
+            banner: [],
+            notice: '',
+            list: [],
+
+            eth: '',
+            eth_c: '',
+            btc: '',
+            btc_c: '',
+            fil: '',
+            fil_c: ''
+        },
+        methods: {
+            getPageData() {
+                _ajax({
+                    url: '/api/index/indexPageData',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.banner = res.data.banner;
+                            this.notice = res.data.notice;
+                            this.list = res.data.news;
+                        }
+                    }
+                })
+            },
+            showNotice() {
+                api.alert({
+                    title: '系统公告',
+                    msg: this.notice,
+                    buttons: ['我已知晓']
+                });
+            },
+            goNewsDetail(id) {
+                api.openTabLayout({
+                    name: 'news_detail',
+                    url: 'widget://html/news_detail.html',
+                    title: '资讯详情',
+                    pageParam: {
+                        id: id
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goLogin() {
+                api.openTabLayout({
+                    name: 'login',
+                    url: 'widget://html/login.html',
+                    title: '登录',
+                    pageParam: {},
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: true
+                    }
+                });
+            },
+            goFIL(v) {
+                if (v == 1) {
+                    var url = 'http://m.huobi.com/zh-cn/market/chart/?s=btc_usdt';
+                } else if (v == 2) {
+                    var url = 'http://m.huobi.sh/zh-cn/market/chart/?s=eth_usdt';
+                } else {
+                    var url = 'http://filfox.info/zh';
+                }
+                api.openTabLayout({
+                    name: 'url',
+                    url: url,
+                    title: '',
+                    pageParam: {},
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            }
+        },
+        mounted() {
+            // this.$nextTick(function() {
+            mySwiper = new Swiper('.swiper-container', {
+                loop: false,
+                autoplay: true,
+                observer: true,
+                // observeParents: true,
+                pagination: {
+                    el: '.swiper-pagination',
+                },
+            });
+            // });
+        }
+    });
+
+    function permission() {
+        if (api.systemType == 'ios') {
+            api.requestPermission({
+                list: ['camera', 'photos', 'location', 'notification', 'storage', 'microphone'],
+                code: 1
+            }, function(ret, err) {
+                console.log(JSON.stringify(ret));
+            });
+        } else {
+            api.requestPermission({
+                list: ['camera', 'photos', 'location', 'notification', 'storage', 'microphone'],
+                code: 1
+            }, function(ret, err) {
+                console.log(JSON.stringify(ret));
+            });
+        }
+    }
+
+    function doLogin() {
+        _ajax({
+            url: '/api/user/login',
+            success: res => {
+                if (res.code == 1) {
+                    $api.setStorage('user', res.data);
+                    api.sendEvent({
+                        name: 'update_userinfo_success'
+                    });
+                }
+            }
+        });
+    }
+
+    function getUserInfo() {
+        _ajax({
+            url: '/api/user/userinfo',
+            success: res => {
+                if (res.code == 1) {
+                    $api.setStorage('user', res.data);
+                    api.sendEvent({
+                        name: 'update_userinfo_success'
+                    });
+                }
+            }
+        });
+    }
+
+    function getRealTimeData() {
+        api.ajax({
+            url: 'https://data.block.cc/api/v3/price?slug=bitcoin,filecoin,ethereum&api_key=BC2N5W09AVECK3WNML58D9S3L9TATF0TU3J7VJOB'
+        }, function(ret, err) {
+            if (ret) {
+                for (var i in ret) {
+                    if (ret[i].S == 'BTC') {
+                        app.btc = ret[i].u;
+                        app.btc_c = parseInt(ret[i].c * 10000) / 100;
+                    }
+                    if (ret[i].S == 'ETH') {
+                        app.eth = ret[i].u;
+                        app.eth_c = parseInt(ret[i].c * 10000) / 100;
+                    }
+                    if (ret[i].S == 'FIL6') {
+                        app.fil = ret[i].u;
+                        app.fil_c = parseInt(ret[i].c * 10000) / 100;
+                    }
+                }
+            }
+        });
+    }
+</script>
+
+</html>

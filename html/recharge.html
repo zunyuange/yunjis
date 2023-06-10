@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/mobileselect.css" />
+    <style>
+        .form {
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 1rem;
+        }
+        
+        .label {
+            margin-right: 0.75rem;
+        }
+        
+        .input {
+            position: relative;
+            flex: 1;
+        }
+        
+        .input input {
+            font-size: 1.2rem;
+            font-weight: 500;
+            text-align: right;
+            padding-right: 0.25rem;
+            height: 2.5rem;
+            line-height: 2.5rem;
+        }
+        
+        .input input::-webkit-input-placeholder {
+            font-size: 0.8rem;
+            height: 2.5rem;
+            line-height: 2.5rem;
+        }
+        
+        .select {
+            flex: 1;
+            text-align: right;
+            line-height: 2.5rem;
+        }
+        
+        .address {
+            margin: 1rem 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .address-img {
+            width: 6rem;
+            height: 6rem;
+        }
+        
+        .address-text {
+            display: flex;
+            align-items: center;
+            font-size: 0.9rem;
+            padding: 0.5rem;
+        }
+        
+        .address-text>img {
+            width: 1.4rem;
+            height: 1.4rem;
+            margin-left: 0.25rem;
+        }
+        
+        .upload {
+            margin-left: auto;
+            padding-bottom: 0.75rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        .upload>img {
+            width: 4rem;
+            height: 4rem;
+            object-fit: cover;
+        }
+        
+        .tip {
+            font-size: 0.6rem;
+            color: #555;
+            margin-top: 0.25rem;
+        }
+        
+        .btn {
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">充值类型</div>
+                <div class="select">{{type}}</div>
+            </div>
+            <div class="form-row">
+                <div class="label">充值金额</div>
+                <div class="input">
+                    <input type="number" placeholder="请输入充值的数量" v-model="num">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">充值方式</div>
+                <div class="select" id="paytype">{{name || '请选择'}}</div>
+            </div>
+            <div class="address" v-if="address">
+                <img class="address-img" :src="host+'/api/index/qrcode?text='+address" alt="">
+                <div class="address-text">
+                    <div class="aui-ellipsis">{{address}}</div>
+                    <img src="../image/copy.png" alt="" @click="copy">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">支付凭证</div>
+                <div class="upload">
+                    <img :src="image || '../image/upload.png'" alt="" @click="addImg">
+                    <div class="tip">请上传支付成功截图</div>
+                </div>
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">确认</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/mobileselect.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.type = api.pageParam.type || 'USDT';
+        app.getWallet();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            type: 'USDT',
+            num: '',
+            wallets: [],
+            address: '',
+            name: '',
+            image: '',
+            host: $host
+        },
+        methods: {
+            copy() {
+                var clipBoard = api.require('clipBoard');
+                clipBoard.set({
+                    value: this.address
+                }, function(ret, err) {
+                    if (ret) {
+                        _msg('复制成功');
+                    } else {
+                        _msg('复制失败');
+                    }
+                });
+            },
+            addImg() {
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    allowEdit: true,
+                    quality: 100
+                }, function(ret, err) {
+                    if (ret && ret.data) {
+                        app.image = ret.data;
+                    }
+                });
+            },
+            save() {
+                if (this.num <= 0) return _msg('请输入充值金额');
+                if (!this.address) return _msg('请选择充值方式');
+                if (!this.image) return _msg('请上传充值成功截图');
+                _ajax({
+                    url: '/api/user/recharge',
+                    data: {
+                        type: this.type,
+                        num: this.num,
+                        address: this.address,
+                        name: this.name
+                    },
+                    files: {
+                        image: this.image
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            },
+            getWallet() {
+                _ajax({
+                    url: '/api/index/wallets',
+                    data: {
+                        type: this.type
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            var data = [];
+                            for (var i in res.data) {
+                                data.push({
+                                    value: i,
+                                    address: res.data[i]
+                                });
+                            }
+                            new MobileSelect({
+                                trigger: "#paytype",
+                                title: "支付方式",
+                                ensureBtnColor: "#1089ff",
+                                triggerDisplayData: false,
+                                wheels: [{
+                                    data: data
+                                }, ],
+
+                                callback: function(indexArr, data) {
+                                    app.name = data[0].value;
+                                    app.address = data[0].address;
+                                },
+                            });
+                        }
+                    }
+                })
+            }
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            background-color: #fff;
+            padding: 0.75rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            padding: 0.5rem 0.25rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .form-row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-bottom: 1px solid #dcdcdc;
+            transform: scale(.5);
+            transform-origin: 0 0;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 0.5rem;
+        }
+        
+        .label {
+            margin-right: 0.5rem;
+            color: #000;
+        }
+        
+        .right {
+            flex: 1;
+            z-index: 1;
+        }
+        
+        .right>input {
+            height: 2.5rem;
+            padding: 0 0.25rem;
+        }
+        
+        .send {
+            color: #1089ff;
+            z-index: 1;
+        }
+        
+        .btn {
+            padding: 2rem 1rem 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">手机号</div>
+                <div class="right">
+                    <input type="number" placeholder="请输入手机号" v-model="mobile">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">验证码</div>
+                <div class="right">
+                    <input type="number" placeholder="请输入验证码" v-model="code">
+                </div>
+                <div class="send" @click="send">{{is_send ? time+'s' : '获取验证码'}}</div>
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">确定</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.user = $api.getStorage('user') || {};
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {},
+            mobile: '',
+            code: '',
+            is_send: false,
+            time: 60
+        },
+        methods: {
+            send() {
+                if (this.is_send) return false;
+                if (!this.mobile) return _msg('请输入手机号');
+                _ajax({
+                    url: '/api/index/smsCode',
+                    data: {
+                        mobile: this.mobile,
+                        event: 'changemobile'
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            this.is_send = true;
+                            var timer = setInterval(() => {
+                                this.time--;
+                                if (this.time == 0) {
+                                    clearInterval(timer);
+                                    this.is_send = false;
+                                    this.time = 60;
+                                }
+                            }, 1000);
+                        }
+                    }
+                }, 1);
+            },
+            save() {
+                if (!this.mobile) return _msg('请输入手机号');
+                if (!this.code) return _msg('请输入验证码');
+                _ajax({
+                    url: '/api/user/bindMobile',
+                    data: {
+                        mobile: this.mobile,
+                        code: this.code
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            var user = app.user;
+                            user.mobile = res.data;
+                            app.user = user;
+                            $api.setStorage('user', user);
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    });
+</script>
+
+</html>

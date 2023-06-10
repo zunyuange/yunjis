@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            background-color: #fff;
+            padding: 0.75rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            padding: 0 0.25rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .form-row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-bottom: 1px solid #dcdcdc;
+            transform: scale(.5);
+            transform-origin: 0 0;
+        }
+        
+        .label {
+            margin-right: 0.5rem;
+            color: #000;
+        }
+        
+        .right {
+            flex: 1;
+            z-index: 1;
+        }
+        
+        .right>input {
+            height: 2.5rem;
+            font-size: 0.85rem;
+            padding: 0 0.25rem;
+        }
+        
+        .btn {
+            padding: 2rem 1rem 1rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <!-- <div class="label">昵称</div> -->
+                <div class="right">
+                    <input type="text" placeholder="请输入昵称" v-model="nickname">
+                </div>
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">确定</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.user = $api.getStorage('user') || {};
+        app.nickname = app.user.nickname || '';
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {},
+            nickname: ''
+        },
+        methods: {
+            save() {
+                if (this.nickname == this.user.nickname) return _msg('未修改昵称');
+                if (!this.nickname || !$api.trim(this.nickname)) return _msg('昵称不能为空');
+                _ajax({
+                    url: '/api/user/setNickname',
+                    data: {
+                        nickname: this.nickname
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            var user = app.user;
+                            user.nickname = res.data;
+                            app.user = user;
+                            $api.setStorage('user', user);
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

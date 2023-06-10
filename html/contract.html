@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .content {
+            width: 100%;
+            padding: 1rem;
+            background-color: #fff;
+        }
+        
+        .content p {
+            color: inherit;
+            font-size: inherit;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="content" v-html="contract"></div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ajax({
+            url: '/api/index/contract',
+            success: res => {
+                if (res.code == 1) {
+                    app.contract = res.data.contract;
+                    app.file = res.data.file;
+
+                    if (app.file) {
+                        api.setNavBarAttr({
+                            rightButtons: [{
+                                text: '下载'
+                            }]
+                        });
+                    }
+
+                }
+            }
+        });
+
+        api.addEventListener({
+            name: 'navitembtn'
+        }, function(ret, err) {
+            if (ret.type == 'right') {
+                if (app.is_download) return _msg('正在下载');
+                api.download({
+                    url: app.file,
+                    savePath: 'fs://IPFS＆Filecoin分布式存储算力租赁协议.docx',
+                    report: true,
+                    cache: true,
+                    allowResume: true
+                }, function(ret, err) {
+                    if (ret.state == 0) {
+                        api.setNavBarAttr({
+                            rightButtons: [{
+                                text: ret.percent + '%'
+                            }]
+                        });
+                        app.is_download = true;
+                    } else {
+                        api.setNavBarAttr({
+                            rightButtons: [{
+                                text: '下载'
+                            }]
+                        });
+                        app.is_download = false;
+                        if (ret.state == 1) {
+                            _msg('下载成功');
+                        }
+                        if (ret.state == 2) {
+                            _msg('下载失败');
+                        }
+                    }
+                });
+            }
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            contract: '',
+            file: '',
+            is_download: false
+        }
+    })
+</script>
+
+</html>

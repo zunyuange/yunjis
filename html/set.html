@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            background-color: #fff;
+            padding: 0 0.75rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            padding: 0.5rem 0.25rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .form-row+.form-row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-top: 1px solid #dcdcdc;
+            transform: scale(.5);
+            transform-origin: 0 0;
+        }
+        
+        .label {
+            margin-right: 0.5rem;
+            line-height: 2.25rem;
+            color: #000;
+        }
+        
+        .right {
+            margin-left: auto;
+            padding-right: 0.75rem;
+            color: #555;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .right::after {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            border: 1px solid #ccc;
+            position: absolute;
+            top: 50%;
+            right: 0.25rem;
+            margin-top: -0.3rem;
+            transform: rotate(45deg);
+            border-left: none;
+            border-bottom: none;
+        }
+        
+        .avatar {
+            width: 3rem;
+            height: 3rem;
+            border-radius: 0.25rem;
+            object-fit: cover;
+        }
+        
+        .btn {
+            padding: 1.5rem 1rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">头像</div>
+                <div class="right" @click="setAvatar">
+                    <img class="avatar" :src="user.avatar" alt="">
+                </div>
+            </div>
+            <div class="form-row" onclick="goPage('set_name', '修改昵称');">
+                <div class="label">昵称</div>
+                <div class="right">{{user.nickname}}</div>
+            </div>
+            <div class="form-row" onclick="goPage('set_mobile', '绑定手机号');">
+                <div class="label">手机号</div>
+                <div class="right">{{user.mobile}}</div>
+            </div>
+            <!-- <div class="form-row">
+                <div class="label">邮箱</div>
+                <div class="right" onclick="goPage('set_email', '绑定邮箱');">绑定</div>
+            </div> -->
+            <div class="form-row" onclick="goPage('set_cert', '实名认证');">
+                <div class="label">实名认证</div>
+                <div class="right">{{user.is_realname ? '已认证' : '去认证'}}</div>
+            </div>
+            <div class="form-row" onclick="goPage('set_password', '登录密码');">
+                <div class="label">登录密码</div>
+                <div class="right">去修改</div>
+            </div>
+            <div class="form-row" onclick="goPage('set_paypass', '交易密码');">
+                <div class="label">交易密码</div>
+                <div class="right">{{user.paypass ? '去修改' : '去设置'}}</div>
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-danger" onclick="loginout();">退出登录</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.user = $api.getStorage('user') || {};
+
+        api.addEventListener({
+            name: 'viewappear'
+        }, function(ret) {
+            app.user = $api.getStorage('user') || {};
+        });
+    }
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {}
+        },
+        methods: {
+            setAvatar() {
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    allowEdit: true,
+                    quality: 100
+                }, function(ret, err) {
+                    if (ret && ret.data) {
+                        console.log(ret.data);
+                        _ajax({
+                            url: '/api/user/setAvatar',
+                            files: {
+                                image: ret.data
+                            },
+                            success: res => {
+                                _msg(res.msg);
+                                if (res.code == 1) {
+                                    var user = app.user;
+                                    user.avatar = res.data;
+                                    app.user = user;
+                                    $api.setStorage('user', user);
+                                    api.sendEvent({
+                                        name: 'update_userinfo'
+                                    });
+                                }
+                            }
+                        }, 1);
+                    }
+                });
+            }
+        }
+    });
+
+    function goPage(name, title) {
+        api.openTabLayout({
+            name: name,
+            url: 'widget://html/' + name + '.html',
+            title: title,
+            pageParam: {},
+            navigationBar: {
+                background: '#1089ff',
+                color: '#fff',
+                shadow: "#1089ff",
+                hideBackButton: false
+            }
+        });
+    }
+
+    function loginout() {
+        $api.rmStorage('token');
+        api.openTabLayout({
+            name: 'login',
+            url: 'widget://html/login.html',
+            title: '登录',
+            pageParam: {},
+            navigationBar: {
+                background: '#1089ff',
+                color: '#fff',
+                shadow: "#1089ff",
+                hideBackButton: true
+            }
+        });
+    }
+</script>
+
+</html>

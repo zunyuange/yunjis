@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .list {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .row {
+            background-color: #fff;
+            border-radius: 0.5rem;
+            overflow: hidden;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .row+.row {
+            margin-top: 0.5rem;
+        }
+        
+        .image {
+            width: 100%;
+            height: 7.5rem;
+        }
+        
+        .detail {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .price {
+            color: #ec0101;
+            font-size: 1rem;
+        }
+        
+        .title {
+            font-size: 0.9rem;
+            margin: 0.1rem 0;
+        }
+        
+        .desc {
+            font-size: 0.6rem;
+            color: #666;
+        }
+        
+        .info {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            margin-top: 0.35rem;
+        }
+        
+        .left {
+            flex: 1;
+            color: #333;
+            font-size: 0.75rem;
+        }
+        
+        .flex {
+            display: flex;
+            align-items: center;
+        }
+        
+        .stock {
+            margin-left: auto;
+            font-size: 0.7rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="list">
+            <div class="row" v-for="(item,index) in list" @click="goDetail(item.id);">
+                <img class="image" :src="item.image" />
+                <div class="detail">
+                    <div class="flex">
+                        <div class="price">{{item.price}} <span style="font-size: 0.8em;">USDT/积分</span></div>
+                        <div class="stock">库存余量：{{item.num}}个</div>
+                    </div>
+                    <div class="title">{{item.title}}</div>
+                    <div class="desc">{{item.desc}}</div>
+                    <div class="info">
+                        <div class="left">
+                            <div>单节点算力：{{item.power}}T</div>
+                            <div>托管年限：{{item.years}}年</div>
+                        </div>
+                        <div class="aui-btn aui-btn-disabled" v-if="item.num == 0">已售罄</div>
+                        <div class="aui-btn aui-btn-info" v-else @click.stop="goBuy(item.id);">立即购买</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+
+        api.setRefreshHeaderInfo({
+            // loadingImg: 'widget://image/refresh.png',
+            bgColor: 'rgba(0,0,0,0)',
+            textColor: '#555',
+            textDown: '下拉刷新...',
+            textUp: '松开刷新...'
+        }, function(ret, err) {
+            app.getList();
+            setTimeout(function() {
+                api.refreshHeaderLoadDone();
+            }, 1500);
+        });
+
+        app.getList();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            list: []
+        },
+        methods: {
+            getList() {
+                _ajax({
+                    url: '/api/index/powerList',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = res.data;
+                        }
+                    }
+                })
+            },
+            goDetail: function(id) {
+                api.openTabLayout({
+                    name: 'power_detail',
+                    url: 'widget://html/power_detail.html',
+                    title: '产品详情',
+                    pageParam: {
+                        id: id
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff"
+                    }
+                });
+            },
+            goBuy(id) {
+                api.openTabLayout({
+                    name: 'buy',
+                    url: 'widget://html/buy.html',
+                    title: '购买产品',
+                    pageParam: {
+                        id: id
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff"
+                    }
+                });
+            }
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .list {}
+        
+        .row {
+            width: 100%;
+            background-color: #fff;
+            padding: 0.5rem 1rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .row+.row {
+            margin-top: 0.25rem;
+        }
+        
+        .left {
+            flex: 1;
+        }
+        
+        .title {
+            margin-bottom: 0.25rem;
+        }
+        
+        .code {
+            font-size: 0.7rem;
+            color: #555;
+            word-break: break-all;
+        }
+        
+        .opt {
+            margin-left: 0.5rem;
+        }
+        
+        .opt>img {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        
+        .btn {
+            padding: 1.5rem 1rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="list">
+            <div class="row" v-for="(item,index) in list">
+                <div class="left">
+                    <div class="title">{{item.name}}</div>
+                    <div class="code">{{item.address}}</div>
+                </div>
+                <div class="opt">
+                    <img src="../image/icon_edit.png" alt="" @click="goEdit(item);">
+                    <img src="../image/icon_del.png" alt="" @click="del(item.id)">
+                </div>
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="goEdit({});">添加新地址</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+
+        api.addEventListener({
+            name: 'set_wallet'
+        }, function(ret) {
+            app.getList();
+        });
+
+        app.getList();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            list: []
+        },
+        methods: {
+            getList() {
+                _ajax({
+                    url: '/api/user/myWallets',
+                    success: res => {
+                        this.list = res.data;
+                    }
+                }, 1);
+            },
+            del(id) {
+                api.confirm({
+                    msg: '确定要删除此地址吗？'
+                }, function(ret) {
+                    console.log(JSON.stringify(ret))
+                    if (ret.buttonIndex == 2) {
+                        _ajax({
+                            url: '/api/user/delWallet',
+                            data: {
+                                id: id
+                            },
+                            success: res => {
+                                _msg(res.msg);
+                                if (res.code == 1) {
+                                    app.getList();
+                                }
+                            }
+                        }, 1);
+                    }
+                });
+            },
+            goEdit(obj) {
+                api.openTabLayout({
+                    name: 'address_add',
+                    url: 'widget://html/address_add.html',
+                    title: obj.id > 0 ? '修改地址' : '添加地址',
+                    pageParam: obj,
+                    allowEdit: true,
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>

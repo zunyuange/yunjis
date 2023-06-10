@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/mobileselect.css" />
+    <style>
+        .main {
+            width: 100%;
+            padding: 0 0.75rem;
+            background-color: #fff;
+        }
+        
+        .row {
+            display: flex;
+            padding: 0.75rem;
+        }
+        
+        .row+.row {
+            border-top: 1px solid #dcdcdc;
+        }
+        
+        .label {}
+        
+        .info {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+        }
+        
+        .btn {
+            width: 1.25rem;
+            height: 1.25rem;
+            background-color: #dcdcdc;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            z-index: 1;
+        }
+        
+        .num {
+            margin: 0 0.5rem;
+        }
+        
+        .buy {
+            margin-top: 0.5rem;
+            padding: 1rem 1rem 1.5rem;
+        }
+        
+        .info input {
+            height: 100%;
+            text-align: right;
+        }
+        
+        .contract {
+            padding: 1rem 0.5rem 0;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .contract div {
+            margin-left: 0.25rem;
+            flex: 1;
+        }
+        
+        .input {
+            width: 2.5rem !important;
+            padding: 0 0.25rem !important;
+            text-align: center !important;
+            margin: 0 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <div class="row">
+                <div class="label">产品名称</div>
+                <div class="info">{{power.title}}</div>
+            </div>
+            <div class="row">
+                <div class="label">单节点算力</div>
+                <div class="info">{{power.power}} T</div>
+            </div>
+            <div class="row">
+                <div class="label">单价</div>
+                <div class="info">{{power.price}} USDT/积分</div>
+            </div>
+            <div class="row">
+                <div class="label">库存</div>
+                <div class="info">{{power.num}}</div>
+            </div>
+            <div class="row">
+                <div class="label">购买数量</div>
+                <div class="info">
+                    <div class="btn" @click="setNum(-1);">-</div>
+                    <input class="input" type="number" v-model="num" @blur="setNum(0);">
+                    <div class="btn" @click="setNum(1);">+</div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="label">总金额</div>
+                <div class="info aui-text-danger">{{power.price * num}} USDT/积分</div>
+            </div>
+            <div class="row" v-if="power.BFIL > 0 || power.PFIL > 0">
+                <div class="label">FIL</div>
+                <div class="info aui-font-size-14 aui-text-warning">质押{{power.BFIL * num}}FIL + GAS费{{power.PFIL * num}}FIL</div>
+            </div>
+            <div class="row">
+                <div class="label">付款账户</div>
+                <div class="info" id="paytype">{{paytype || '请选择'}}</div>
+            </div>
+            <div class="row">
+                <div class="label">交易密码</div>
+                <div class="info">
+                    <input type="password" placeholder="请输入" v-model="paypass">
+                </div>
+            </div>
+        </div>
+        <label class="contract">
+            <input class="aui-radio" type="checkbox" v-model="agree">
+            <div>阅读并同意《IPFS＆Filecoin分布式存储算力租赁协议》</div>
+        </label>
+        <div class="buy">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="buy">购买</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/mobileselect.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        var id = api.pageParam.id || 1;
+        app.getDetail(id);
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            paytype: '',
+            power: {},
+            num: 1,
+            paypass: '',
+            agree: false
+        },
+        methods: {
+            getDetail(id) {
+                _ajax({
+                    url: '/api/index/powerDetail',
+                    data: {
+                        id: id
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.power = res.data;
+                        } else {
+                            _msg(res.msg);
+                        }
+                    }
+                }, 1);
+            },
+            setNum(v) {
+                this.num = parseInt(this.num) || 0;
+                v = parseInt(v);
+                this.num = this.num + v;
+                if (this.num > this.power.num) this.num = this.power.num;
+                if (this.num < 1) this.num = 1;
+            },
+            buy() {
+                if (!this.agree) return _msg('请先同意租赁协议');
+                if (!this.paytype) return _msg('请先选择付款账户');
+                if (!this.paypass) return _msg('请输入交易密码');
+                _ajax({
+                    url: '/api/user/buyPower',
+                    data: {
+                        id: this.power.id,
+                        num: this.num,
+                        paytype: this.paytype == 'USDT' ? 'USDT' : 'score',
+                        paypass: this.paypass
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        },
+        watch: {
+            agree(v) {
+                if (v) {
+                    api.openTabLayout({
+                        name: 'contract',
+                        url: 'widget://html/contract.html',
+                        title: '合同详情',
+                        pageParam: {},
+                        navigationBar: {
+                            background: '#1089ff',
+                            color: '#fff',
+                            shadow: "#1089ff",
+                            hideBackButton: false
+                        }
+                    });
+                }
+            }
+        },
+        mounted() {
+            new MobileSelect({
+                trigger: "#paytype",
+                title: "付款账户",
+                ensureBtnColor: "#1089ff",
+                triggerDisplayData: false,
+                wheels: [{
+                    data: ['USDT', '积分']
+                }, ],
+                callback: function(indexArr, data) {
+                    app.paytype = data[0];
+                },
+            });
+        }
+    });
+</script>
+
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .form {
+            background-color: #fff;
+            padding: 0.75rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            padding: 0.5rem 0.25rem;
+            display: flex;
+            align-items: center;
+            position: relative;
+        }
+        
+        .form-row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-bottom: 1px solid #dcdcdc;
+            transform: scale(.5);
+            transform-origin: 0 0;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 0.5rem;
+        }
+        
+        .label {
+            margin-right: 0.5rem;
+            color: #000;
+        }
+        
+        .right {
+            flex: 1;
+            z-index: 1;
+        }
+        
+        .right>input {
+            height: 2.5rem;
+            padding: 0 0.25rem;
+        }
+        
+        .send {
+            color: #1089ff;
+        }
+        
+        .btn {
+            padding: 2rem 1rem 1rem;
+        }
+        
+        .title {
+            padding: 0.5rem 0;
+        }
+        
+        .image {
+            width: 8rem;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">真实姓名</div>
+                <div class="right">
+                    <input type="text" placeholder="请输入真实姓名" v-model="realname" :readonly="user.is_realname ? true : false">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">身份证号</div>
+                <div class="right">
+                    <input type="text" placeholder="请输入身份证号" v-model="idcard_no" :readonly="user.is_realname ? true : false">
+                </div>
+            </div>
+            <div class="title">上传身份证人像面</div>
+            <img class="image" :src="idcard_f || '../image/idcard-f.png'" alt="" @click="setIdcardF">
+            <div class="title aui-margin-t-15">上传身份证国徽面</div>
+            <img class="image" :src="idcard_b || '../image/idcard-b.png'" alt="" @click="setIdcardB">
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-success" v-if="user.is_realname">您已完成实名认证</a>
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save" v-else>确定</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        var user = $api.getStorage('user');
+        if (user) {
+            app.user = user;
+            app.realname = user.realname;
+            app.idcard_no = user.idcard_no;
+            app.idcard_f = user.idcard_f;
+            app.idcard_b = user.idcard_b;
+        }
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {},
+            realname: '',
+            idcard_no: '',
+            idcard_f: '',
+            idcard_b: ''
+        },
+        methods: {
+            save() {
+                if (!this.realname || !$api.trim(this.realname)) return _msg('请输入真实姓名');
+                if (!this.idcard_no || this.idcard_no.length != 18) return _msg('请输入18位身份证号码');
+                if (!this.idcard_f) return _msg('请上传身份证人像面');
+                if (!this.idcard_b) return _msg('请上传身份证国徽面');
+                _ajax({
+                    url: '/api/user/setRealname',
+                    data: {
+                        realname: this.realname,
+                        idcard_no: this.idcard_no
+                    },
+                    files: {
+                        idcard_f: this.idcard_f,
+                        idcard_b: this.idcard_b
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            var user = app.user;
+                            user.realname = res.data.realname;
+                            user.idcard_no = res.data.idcard_no;
+                            user.idcard_f = res.data.idcard_f;
+                            user.idcard_b = res.data.idcard_b;
+                            app.user = user;
+                            $api.setStorage('user', user);
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            },
+            setIdcardF() {
+                if (this.user.is_realname) return false;
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    allowEdit: true,
+                    quality: 100
+                }, function(ret, err) {
+                    if (ret && ret.data) {
+                        app.idcard_f = ret.data;
+                    }
+                });
+            },
+            setIdcardB() {
+                if (this.user.is_realname) return false;
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    allowEdit: true,
+                    quality: 100
+                }, function(ret, err) {
+                    if (ret && ret.data) {
+                        app.idcard_b = ret.data;
+                    }
+                });
+            }
+        }
+    })
+</script>
+
+</html>

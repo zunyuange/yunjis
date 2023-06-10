@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <link rel="stylesheet" type="text/css" href="../app/mobileselect.css" />
+    <style>
+        .form {
+            width: 100%;
+            background-color: #fff;
+            padding: 1rem;
+        }
+        
+        .form-row {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        
+        .form-row+.form-row {
+            margin-top: 1rem;
+        }
+        
+        .label {
+            margin-right: 0.75rem;
+            line-height: 2.5rem;
+        }
+        
+        .content {
+            flex: 1;
+            text-align: right;
+            word-break: break-all;
+        }
+        
+        .content>input {
+            text-align: right;
+            height: 2.5rem;
+        }
+        
+        .address {
+            padding-right: 0.5rem;
+            position: relative;
+            height: 2rem;
+            line-height: 2rem;
+        }
+        
+        .address::after {
+            content: "";
+            width: 0.4rem;
+            height: 0.4rem;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            margin-top: -0.2rem;
+            border: 1px solid #333;
+            border-left: none;
+            border-bottom: none;
+            transform: rotate(45deg);
+            transform-origin: center center;
+        }
+        
+        .address-code {
+            font-size: 0.6rem;
+            /* text-align: left; */
+            color: #555;
+            line-height: 1rem;
+            padding-bottom: 0.5rem;
+        }
+        
+        .current {
+            padding: 0.5rem 0.5rem;
+            font-size: 0.7rem;
+            color: #555;
+            word-break: break-all;
+        }
+        
+        .tips {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.7rem;
+        }
+        
+        .btn {
+            padding: 1.5rem 1rem 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="form-row">
+                <div class="label">提现类型</div>
+                <div class="content">{{type=='score' ? '积分' : type}}</div>
+            </div>
+            <div class="form-row">
+                <div class="label">提币地址</div>
+                <div class="content">
+                    <div class="address">{{address.name || '请选择'}}</div>
+                </div>
+            </div>
+            <div class="current" v-if="address.address">钱包地址: {{address.address}}</div>
+            <div class="form-row">
+                <div class="label">提现金额</div>
+                <div class="content">
+                    <input class="" type="number" v-model="num" placeholder="请输入">
+                </div>
+            </div>
+            <div class="current">
+                我的{{type=='score' ? '积分' : type}}: {{money}} ({{min}}起提)
+                <span class="aui-text-info" @click="allMoney();">全部提现</span>,
+                <span>手续费: {{type=='FIL' ? wsc + 'FIL' : wsc + '%'}}</span>
+            </div>
+
+            <div class="form-row">
+                <div class="label">交易密码</div>
+                <div class="content">
+                    <input type="password" v-model="paypass" placeholder="请输入">
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="label">预计到账</div>
+                <div class="content">
+                    {{realnum}}
+                </div>
+            </div>
+        </div>
+        <div class="tips">
+            <b>温馨提示：</b>请你在提现操作前认真核对提币地址信息，确保提现属自愿行为，一旦操作提现完成，对应的资产所有权将由你提供的地址相对应的帐户享有。
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">提交</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/mobileselect.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.type = api.pageParam.type || 'USDT';
+        app.user = $api.getStorage('user') || {};
+        app.money = app.user[app.type] || 0;
+
+        api.addEventListener({
+            name: 'viewappear'
+        }, function(ret) {
+            app.getWithdrawInfo();
+            app.getWallet();
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {},
+            type: 'USDT',
+            money: '',
+            address: {},
+            num: '',
+            paypass: '',
+            min: 0,
+            wsc: '',
+            realnum: 0
+        },
+        methods: {
+            allMoney() {
+                this.num = this.money;
+            },
+            save() {
+                if (!this.address.address) return _msg('请选择提现地址');
+                if (!this.num) return _msg('请输入提现金额');
+                if (this.num > this.money || this.num < this.min) return _msg('提现金额错误');
+                if (!this.paypass) return _msg('请输入提现密码');
+                _ajax({
+                    url: '/api/user/withdraw',
+                    data: {
+                        type: this.type,
+                        address: this.address.address,
+                        num: this.num,
+                        paypass: this.paypass
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            api.sendEvent({
+                                name: 'update_userinfo'
+                            });
+                            setTimeout(function() {
+                                _close();
+                            }, 1000);
+                        }
+                    }
+                }, 1);
+            },
+            getWithdrawInfo() {
+                _ajax({
+                    url: '/api/index/withdrawInfo',
+                    success: res => {
+                        if (res.code == 1) {
+                            if (this.type == 'USDT') {
+                                this.min = res.data.usdtwm;
+                                this.wsc = res.data.usdtwsc * 100;
+                            } else {
+                                this.min = res.data.filwm;
+                                this.wsc = res.data.filwsc;
+                            }
+                        }
+                    }
+                });
+            },
+            getWallet() {
+                _ajax({
+                    url: '/api/user/myWallets',
+                    success: res => {
+                        if (res.code == 1) {
+                            if (res.data.length == 0) {
+                                api.confirm({
+                                    title: '提示',
+                                    msg: '您还没有设置钱包地址',
+                                    buttons: ['立即设置', '取消']
+                                }, function(ret) {
+                                    console.log(JSON.stringify(ret));
+                                    if (ret.buttonIndex == 1) {
+                                        api.openTabLayout({
+                                            name: 'address',
+                                            url: 'widget://html/address.html',
+                                            title: '钱包地址',
+                                            pageParam: {},
+                                            navigationBar: {
+                                                background: '#1089ff',
+                                                color: '#fff',
+                                                shadow: "#1089ff",
+                                                hideBackButton: false
+                                            }
+                                        });
+                                    }
+                                });
+                                return false;
+                            }
+                            new MobileSelect({
+                                trigger: ".address",
+                                title: "提币地址",
+                                ensureBtnColor: "#1089ff",
+                                triggerDisplayData: false,
+                                wheels: [{
+                                    data: res.data
+                                }],
+                                position: [0],
+                                keyMap: {
+                                    id: 'id',
+                                    value: 'name'
+                                },
+                                callback: function(indexArr, data) {
+                                    console.log(JSON.stringify(data));
+                                    app.address = data[0];
+                                },
+                            });
+                        }
+                    }
+                }, 1);
+            }
+        },
+        watch: {
+            num(v) {
+                var realnum = 0;
+                if (this.type == 'USDT') {
+                    realnum = parseFloat((v * (1 - this.wsc / 100)).toFixed(4));
+                } else {
+                    realnum = parseFloat((v - this.wsc).toFixed(4));
+                }
+                if (realnum < 0) realnum = 0;
+                this.realnum = realnum;
+            }
+        },
+        mounted() {
+
+        }
+    })
+</script>
+
+</html>

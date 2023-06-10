@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .user {
+            width: 100%;
+            height: 8rem;
+            display: flex;
+            align-items: center;
+            padding: 0 1rem 2rem;
+            color: #fff;
+            background-image: linear-gradient(to top, #04befe 0%, #1089ff 100%);
+            border-radius: 0 0 0.75rem 0.75rem;
+        }
+        
+        .avatar {
+            width: 3.5rem;
+            height: 3.5rem;
+            border-radius: 50%;
+            margin-right: 0.75rem;
+            object-fit: cover;
+        }
+        
+        .mobile {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .user-row {
+            display: flex;
+            align-items: center;
+        }
+        
+        .id {
+            font-size: 0.7rem;
+        }
+        
+        .level {
+            margin-left: 0.5rem;
+        }
+        
+        .navs {
+            width: 100%;
+            background-color: #fff;
+        }
+        
+        .nav {
+            display: flex;
+            align-items: center;
+            position: relative;
+            padding: 0 0.75rem;
+        }
+        
+        .nav-icon {
+            width: 1.25rem;
+            height: 1.25rem;
+            margin-right: 0.75rem;
+        }
+        
+        .nav-title {
+            flex: 1;
+            line-height: 2.5rem;
+            position: relative;
+        }
+        
+        .nav-title::after {
+            content: "";
+            width: 0.5rem;
+            height: 0.5rem;
+            position: absolute;
+            right: 0;
+            top: 50%;
+            margin-top: -0.25rem;
+            border: 1px solid #dcdcdc;
+            border-left: none;
+            border-bottom: none;
+            transform: rotate(45deg);
+            transform-origin: center center;
+        }
+        
+        .nav:active {
+            background-color: #f2f2f2;
+        }
+        
+        .nav+.nav .nav-title::before {
+            content: "";
+            width: 200%;
+            height: 200%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            border-top: 1px solid #dcdcdc;
+            transform: scale(.5);
+            transform-origin: 0 0;
+        }
+        
+        .row {
+            width: 92%;
+            margin: -2rem auto 0.75rem;
+            background-color: #fff;
+            border-radius: 0.5rem;
+            display: flex;
+            align-items: center;
+            overflow: hidden;
+        }
+        
+        .col {
+            flex: 1;
+            text-align: center;
+            padding: 0.5rem 0;
+        }
+        
+        .col:active {
+            background-color: #f2f2f2;
+        }
+        
+        .col-num {
+            font-size: 0.9rem;
+            color: #1089ff;
+        }
+        
+        .col-name {
+            font-size: 0.7rem;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="user">
+            <img class="avatar" :src="user.avatar" alt="" onclick="goPage('set', '设置');">
+            <div class="userinfo">
+                <div class="mobile">{{user.mobile}}</div>
+                <div class="user-row">
+                    <div class="id">ID: {{user.id}}</div>
+                    <div class="level aui-label aui-label-warning" v-show="user.level_name">{{user.level_name}}</div>
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col" onclick="goWallet('USDT');">
+                <div class="col-num">{{user.USDT}}</div>
+                <div class="col-name">USDT</div>
+            </div>
+            <div class="col" onclick="goWallet('FIL');">
+                <div class="col-num">{{user.FIL}}</div>
+                <div class="col-name">FIL</div>
+            </div>
+            <div class="col" onclick="goWallet('score');">
+                <div class="col-num">{{user.score}}</div>
+                <div class="col-name">积分</div>
+            </div>
+        </div>
+        <div class="navs">
+            <div class="nav" onclick="goPage('mypower', '我的云算力');">
+                <img class="nav-icon" src="../image/power.png" alt="">
+                <div class="nav-title">我的算力</div>
+            </div>
+            <div class="nav" onclick="goPage('income', '我的收益');">
+                <img class="nav-icon" src="../image/income.png" alt="">
+                <div class="nav-title">我的收益</div>
+            </div>
+            <div class="nav" onclick="goPage('address', '钱包地址');">
+                <img class="nav-icon" src="../image/wallet.png" alt="">
+                <div class="nav-title">钱包地址</div>
+            </div>
+            <div class="nav" onclick="goPage('share', '邀请码');">
+                <img class="nav-icon" src="../image/invite.png" alt="">
+                <div class="nav-title">邀请好友</div>
+            </div>
+            <div class="nav" onclick="goPage('team', '推荐人关系');">
+                <img class="nav-icon" src="../image/team.png" alt="">
+                <div class="nav-title">推荐人关系</div>
+            </div>
+            <div class="nav" onclick="goPage('help', '常见问题');">
+                <img class="nav-icon" src="../image/help.png" alt="">
+                <div class="nav-title">常见问题</div>
+            </div>
+            <div class="nav" onclick="goPage('feedback', '意见反馈');">
+                <img class="nav-icon" src="../image/feedback.png" alt="">
+                <div class="nav-title">意见反馈</div>
+            </div>
+            <div class="nav" onclick="goPage('set', '设置');">
+                <img class="nav-icon" src="../image/set.png" alt="">
+                <div class="nav-title">设置</div>
+            </div>
+        </div>
+        <div style="height: 0.75rem;"></div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        api.setRefreshHeaderInfo({
+            bgColor: '#1089ff',
+            textColor: '#fff',
+            textDown: '下拉刷新...',
+            textUp: '松开刷新...'
+        }, function(ret, err) {
+            getUserinfo();
+            setTimeout(function() {
+                api.refreshHeaderLoadDone();
+            }, 1500);
+        });
+
+        app.user = $api.getStorage('user') || {};
+
+        api.addEventListener({
+            name: 'update_userinfo_success'
+        }, function(ret) {
+            getUserinfo();
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            user: {}
+        },
+        methods: {
+            getUserinfo() {
+                _ajax({
+                    url: '/api/user/userinfo',
+                    success: res => {
+                        if (res.code == 1) {
+                            $api.setStorage('user', res.data);
+                            this.user = res.data;
+                        }
+                    }
+                })
+            }
+        }
+    });
+
+    function getUserinfo() {
+        app.getUserinfo();
+    }
+
+    function goWallet(type) {
+        api.openTabLayout({
+            name: 'wallet',
+            url: 'widget://html/wallet.html',
+            title: '钱包',
+            pageParam: {
+                type: type
+            },
+            navigationBar: {
+                background: '#1089ff',
+                color: '#fff',
+                shadow: "#1089ff",
+                hideBackButton: false
+            }
+        });
+    }
+
+    function goPage(name, title) {
+        api.openTabLayout({
+            name: name,
+            url: 'widget://html/' + name + '.html',
+            title: title,
+            pageParam: {},
+            navigationBar: {
+                background: '#1089ff',
+                color: '#fff',
+                shadow: "#1089ff",
+                hideBackButton: false
+            }
+        });
+    }
+</script>
+
+</html>

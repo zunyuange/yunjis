@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .main {
+            width: 100%;
+            min-height: 100vh;
+            padding: 0.5rem 1rem 1.5rem;
+            background-image: linear-gradient(to top, #04befe 0%, #1089ff 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .form {
+            width: 100%;
+            padding: 1rem;
+            background-color: #fff;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 0.5rem;
+        }
+        
+        .form-row {
+            display: flex;
+            align-items: center;
+            padding: 0 0.5rem;
+            position: relative;
+            z-index: 1;
+            border-bottom: 1px solid #dcdcdc;
+        }
+        /* .form-row::after {
+            content: "";
+            width: 200%;
+            height: 200%;
+            border-bottom: 1px solid #dcdcdc;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transform: scale(0.5);
+            transform-origin: 0 0;
+        } */
+        
+        .form-row+.form-row {
+            margin-top: 0.5rem;
+        }
+        
+        .form-row>input {
+            flex: 1;
+            height: 2.5rem;
+            line-height: 2.5rem;
+            font-size: 0.8rem;
+            z-index: 9;
+        }
+        
+        .send {
+            font-size: 0.7rem;
+            color: #1089ff;
+            z-index: 1;
+        }
+        
+        .rule {
+            height: 2.5rem;
+            display: flex;
+            align-items: center;
+            font-size: 0.7rem;
+            padding: 0 0.5rem;
+            color: #333;
+            margin-top: 0.5rem;
+            line-height: 1;
+        }
+        
+        .rule a {
+            color: #1089ff;
+        }
+        
+        .aui-radio {
+            width: 1rem;
+            height: 1rem;
+            margin: 0;
+        }
+        
+        .aui-btn-block {
+            border-radius: 2rem;
+            margin-top: 1.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="main">
+            <div class="form">
+                <div class="form-row">
+                    <input type="number" placeholder="请输入手机号" v-model="mobile">
+                </div>
+                <div class="form-row">
+                    <input type="number" placeholder="请输入验证码" v-model="code">
+                    <div class="send" @click="send">{{is_send ? time+'s' : '发送验证码'}}</div>
+                </div>
+                <div class="form-row">
+                    <input type="password" placeholder="请输入新的登录密码" v-model="password">
+                </div>
+                <div class="form-row">
+                    <input type="password" placeholder="请确认新的登录密码" v-model="password1">
+                </div>
+                <div class="aui-btn aui-btn-info aui-btn-block" @click="resetpwd">重置密码</div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            mobile: '',
+            code: '',
+            password: '',
+            password1: '',
+            is_send: false,
+            time: 60
+        },
+        methods: {
+            send() {
+                if (this.is_send) return false;
+                if (!this.mobile) return _msg('请输入手机号');
+                _ajax({
+                    url: '/api/index/smsCode',
+                    data: {
+                        mobile: this.mobile,
+                        event: 'resetpwd'
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            this.is_send = true;
+                            var timer = setInterval(() => {
+                                this.time--;
+                                if (this.time == 0) {
+                                    clearInterval(timer);
+                                    this.is_send = false;
+                                    this.time = 60;
+                                }
+                            }, 1000);
+                        }
+                    }
+                }, 1);
+            },
+            resetpwd() {
+                if (!this.mobile) return _msg('请输入手机号');
+                if (!this.code) return _msg('请输入验证码');
+                if (!this.password) return _msg('请设置登录密码');
+                if (this.password.length < 8) return _msg('登录密码不少于8位');
+                if (!/[a-zA-z]+/.test(this.password) || !/[\d]+/.test(this.password)) return _msg('登录密码必须含有字母和数字');
+                if (this.password != this.password1) return _msg('登录密码不一致');
+                _ajax({
+                    url: '/api/index/reset',
+                    data: {
+                        mobile: this.mobile,
+                        code: this.code,
+                        password: this.password
+                    },
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            setTimeout(function() {
+                                _close();
+                            }, 800);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    });
+</script>
+
+</html>

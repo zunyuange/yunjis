@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .main {
+            padding: 0.75rem;
+        }
+        
+        .flex {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            background-color: #1089ff;
+            color: #fff;
+            border-radius: 0.25rem;
+            padding: 0.5rem 0;
+        }
+        
+        .flex-col {
+            flex: 1;
+            text-align: center;
+            font-size: 0.65rem;
+            height: 3.5rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            padding: 0.25rem;
+        }
+        
+        .flex-col+.flex-col {
+            border-left: 1px solid #dcdcdc;
+        }
+        
+        .power-num {
+            font-size: 1rem;
+            margin-top: auto;
+        }
+        
+        .data {
+            width: 100%;
+            display: flex;
+            flex-wrap: wrap;
+            margin-top: 0.75rem;
+        }
+        
+        .data-item {
+            width: 8.25rem;
+            text-align: center;
+            background-color: #fff;
+            padding: 0.5rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .data-item:nth-child(n + 3) {
+            margin-top: 0.5rem;
+        }
+        
+        .data-item:nth-child(2n) {
+            margin-left: auto;
+        }
+        
+        .data-name {
+            font-size: 0.7rem;
+            color: #1089ff;
+        }
+        
+        .data-num {
+            /* font-size: 1rem; */
+            color: #cd0a0a;
+            margin-top: 0.25rem;
+        }
+        
+        .list-title {
+            height: 2.5rem;
+            line-height: 2.5rem;
+            padding: 0 0.25rem;
+        }
+        
+        .list {
+            background-color: #fff;
+            border-radius: 0.25rem;
+            box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .row {
+            padding: 0.5rem 0.75rem;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+        
+        .row:active {
+            background-color: #f5f5f5;
+        }
+        
+        .row-img {
+            width: 3.5rem;
+            height: 3.5rem;
+            margin-right: 0.5rem;
+            border-radius: 0.15rem;
+            object-fit: cover;
+        }
+        
+        .row-content {
+            flex: 1;
+        }
+        
+        .row-flex {
+            width: 100%;
+            display: flex;
+        }
+        
+        .title {
+            flex: 1;
+        }
+        
+        .profit {
+            margin-left: 0.5rem;
+            color: #cd0a0a;
+            font-size: 0.7rem;
+        }
+        
+        .desc {
+            color: #666;
+            font-size: 0.7rem;
+            margin-top: 0.5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <main class="main">
+            <div class="flex">
+                <div class="flex-col" @click="goMypower">
+                    <div>我的算力</div>
+                    <div class="power-num">{{AP}} T</div>
+                    <!-- <div>({{AP * 0.75}} + {{AP * 0.25}})</div> -->
+                </div>
+                <div class="flex-col" @click="goWalletLog">
+                    <div>质押FIL币</div>
+                    <div class="power-num">{{EP}} 个</div>
+                </div>
+            </div>
+
+            <div class="data">
+                <div class="data-item">
+                    <div class="data-name">昨日收益</div>
+                    <div class="data-num">{{YI}} FIL</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-name">锁定收益</div>
+                    <div class="data-num">{{LI}} FIL</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-name">可提现收益</div>
+                    <div class="data-num">{{WI}} FIL</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-name">累计收益</div>
+                    <div class="data-num">{{AI}} FIL</div>
+                </div>
+            </div>
+
+            <div class="list-title">质押专区</div>
+            <div class="list">
+                <div class="row" v-for="item in list" @click="goBuy(item.id);">
+                    <img class="row-img" :src="item.image" alt="">
+                    <div class="row-content">
+                        <div class="row-flex">
+                            <div class="title">{{item.title}}</div>
+                            <div class="profit">收益率 {{item.rate}}%</div>
+                        </div>
+                        <div class="desc">{{item.min}}FIL起投/锁定{{item.days}}天/到期自动释放</div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript" src="../app/swiper.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        _ready();
+
+        api.setRefreshHeaderInfo({
+            bgColor: 'rgba(0,0,0,0)',
+            textColor: '#555',
+            textDown: '下拉刷新...',
+            textUp: '松开刷新...'
+        }, function(ret, err) {
+            app.getList();
+            app.getFinanceData();
+            setTimeout(function() {
+                api.refreshHeaderLoadDone();
+            }, 1500);
+        });
+
+        app.getList();
+        app.getFinanceData();
+
+        api.addEventListener({
+            name: 'update_userinfo_success'
+        }, function(ret) {
+            app.getFinanceData();
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            list: [],
+            AP: 0,
+            EP: 0,
+            YI: 0,
+            LI: 0,
+            WI: 0,
+            AI: 0
+        },
+        methods: {
+            getFinanceData() {
+                _ajax({
+                    url: '/api/user/getFinanceData',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.AP = res.data.AP;
+                            this.EP = res.data.EP;
+                            this.YI = res.data.YI;
+                            this.LI = res.data.LI;
+                            this.WI = res.data.WI;
+                            this.AI = res.data.AI;
+                        }
+                    }
+                })
+            },
+            getList() {
+                _ajax({
+                    url: '/api/index/finances',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = res.data;
+                        }
+                    }
+                });
+            },
+            goBuy(id) {
+                api.openTabLayout({
+                    name: 'finance_buy',
+                    url: 'widget://html/finance_buy.html',
+                    title: '购买理财',
+                    pageParam: {
+                        id: id
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goMypower() {
+                api.openTabLayout({
+                    name: 'mypower',
+                    url: 'widget://html/mypower.html',
+                    title: '我的云算力',
+                    pageParam: {},
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            },
+            goWalletLog() {
+                api.openTabLayout({
+                    name: 'wallet_log',
+                    url: 'widget://html/wallet_log.html',
+                    title: '账单',
+                    pageParam: {
+                        type: 'FIL',
+                        event: 'payment'
+                    },
+                    navigationBar: {
+                        background: '#1089ff',
+                        color: '#fff',
+                        shadow: "#1089ff",
+                        hideBackButton: false
+                    }
+                });
+            }
+        },
+        mounted() {
+
+        }
+    });
+
+    function getFinanceData() {
+        app.getFinanceData();
+    }
+</script>
+
+</html>

@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .list {
+            padding: 0.75rem;
+        }
+        
+        .row {
+            background-color: #fff;
+            padding: 0.75rem;
+            border-radius: 0.25rem;
+            box-shadow: 0 5px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        .row:active {
+            background-color: #f2f2f2;
+        }
+        
+        .row+.row {
+            margin-top: 0.75rem;
+        }
+        
+        .title {
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .flex {
+            display: flex;
+            align-items: center;
+            margin-top: 0.25rem;
+        }
+        
+        .price {
+            margin-left: auto;
+        }
+        
+        .no {
+            font-size: 0.7rem;
+            color: #454545;
+        }
+        
+        .expire {
+            font-size: 0.7rem;
+            margin-left: auto;
+            color: #454545;
+        }
+        
+        .top {
+            width: 100%;
+            height: 3.5rem;
+            display: flex;
+            align-items: center;
+            background-color: #eee;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .top-col {
+            flex: 1;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #333;
+        }
+        
+        .top-num {
+            font-size: 1rem;
+            color: #1089ff;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="top">
+            <div class="top-col">
+                <div class="top-num">{{EP}}T</div>
+                <div>当前算力</div>
+            </div>
+            <div class="top-col">
+                <div class="top-num">{{AP}}T</div>
+                <div>累计算力</div>
+            </div>
+            <div class="top-col">
+                <div class="top-num">{{TP}}T</div>
+                <div>团队算力</div>
+            </div>
+        </div>
+        <div style="height: 3.5rem;"></div>
+        <div class="list">
+            <div class="row" v-for="(item,index) in list">
+                <div class="title">
+                    <span class="aui-label aui-label-info" v-if="item.status=='normal'">运行中</span>
+                    <span class="aui-label aui-label-warning" v-else>已过期</span> 标准化云存储节点
+                </div>
+                <div class="flex">
+                    <div class="num">节点算力: {{item.power}}T</div>
+                    <div class="price">累计收益: {{item.income}}FIL</div>
+                </div>
+
+                <div class="flex">
+                    <div class="no">NO.{{item.id}}</div>
+                    <div class="expire">到期时间: {{item.expire_time}}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.getList();
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            list: [],
+            AP: 0,
+            EP: 0,
+            TP: 0
+        },
+        methods: {
+            getList() {
+                _ajax({
+                    url: '/api/user/myPowers',
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = res.data.list;
+                            this.EP = res.data.EP;
+                            this.AP = res.data.AP;
+                            this.TP = res.data.TP;
+                        } else {
+                            _msg(res.msg);
+                        }
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

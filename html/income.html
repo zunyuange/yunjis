@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <meta name="format-detection" content="telephone=no,email=no,date=no,address=no">
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .types {
+            width: 100%;
+            height: 2.5rem;
+            background-color: #fff;
+            display: flex;
+            align-items: center;
+            position: fixed;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        
+        .type {
+            margin: 0 auto;
+            height: 2.5rem;
+            line-height: 2.5rem;
+            padding: 0 0.75rem;
+            font-size: 0.85rem;
+        }
+        
+        .type.active {
+            border-bottom: 3px solid #1089ff;
+            color: #1089ff;
+        }
+        
+        .main {
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .data {
+            background-color: #1089ff;
+            width: 100%;
+            height: 4rem;
+            display: flex;
+            align-items: center;
+            color: #fff;
+            border-radius: 0.5rem;
+        }
+        
+        .data-item {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .data-item+.data-item {
+            border-left: 1px solid #aaa;
+        }
+        
+        .data-name {
+            font-size: 0.7rem;
+        }
+        
+        .data-num {
+            font-size: 1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .row {
+            width: 100%;
+            border-radius: 0.5rem;
+            background-color: #fff;
+            margin-top: 0.5rem;
+            box-shadow: 0 0 1rem rgba(0, 0, 0, 0.1);
+        }
+        
+        .cols {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        
+        .col {
+            width: 33.3333%;
+            text-align: center;
+            font-size: 0.7rem;
+            padding: 0.5rem 0.25rem;
+        }
+        
+        .head {
+            height: 2rem;
+            border-bottom: 1px solid #dcdcdc;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="types">
+            <div class="type" :class="{active: type == 1}" @click="type = 1">立即释放</div>
+            <div class="type" :class="{active: type == 2}" @click="type = 2">线性释放</div>
+        </div>
+        <div style="height: 2.5rem;"></div>
+        <div class="main" v-show="type == 1">
+            <div class="data">
+                <div class="data-item">
+                    <div class="data-name">立即释放(FIL)</div>
+                    <div class="data-num">{{NR}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-name">线性释放(FIL)</div>
+                    <div class="data-num">{{NS}}</div>
+                </div>
+            </div>
+            <div class="row" v-for="(item,index) in list" :key="index">
+                <div class="head">
+                    <div>{{item.power}}T</div>
+                    <div>{{item.time}}</div>
+                </div>
+                <div class="cols">
+                    <div class="col">
+                        <div>当日产出</div>
+                        <div>{{item.num}}</div>
+                    </div>
+                    <div class="col">
+                        <div>即时解冻(25%)</div>
+                        <div>{{item.num_r}}</div>
+                    </div>
+                    <div class="col">
+                        <div>180天线性释放</div>
+                        <div>{{item.num_s}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="main" v-show="type == 2">
+            <div class="data">
+                <div class="data-item">
+                    <div class="data-name">已释放(FIL)</div>
+                    <div class="data-num">{{NA}}</div>
+                </div>
+                <div class="data-item">
+                    <div class="data-name">待解冻(FIL)</div>
+                    <div class="data-num">{{NB}}</div>
+                </div>
+            </div>
+            <div class="row" v-for="(item,index) in list" :key="index">
+                <div class="cols">
+                    <div class="col">
+                        <div>开始日期</div>
+                        <div>{{item.time}}</div>
+                    </div>
+                    <div class="col">
+                        <div>释放天数</div>
+                        <div>{{item.current_period}}/{{item.total_period}}</div>
+                    </div>
+                    <div class="col">
+                        <div>状态</div>
+                        <div>{{item.status == 'stage' ? '解冻中' : '已解冻'}}</div>
+                    </div>
+                    <div class="col">
+                        <div>冻结总量</div>
+                        <div>{{item.num_s}}</div>
+                    </div>
+                    <div class="col">
+                        <div>待解冻</div>
+                        <div>{{item.num_b}}</div>
+                    </div>
+                    <div class="col">
+                        <div>已解冻</div>
+                        <div>{{item.num_a}}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+        app.getList();
+
+        api.addEventListener({
+            name: 'scrolltobottom'
+        }, function(ret) {
+            app.getList();
+        });
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            page: 1,
+            list: [],
+            is_ajax: false,
+            is_over: false,
+
+            NR: 0,
+            NS: 0,
+            NA: 0,
+            NB: 0,
+
+            type: 1
+        },
+        methods: {
+            getList() {
+                if (this.is_ajax || this.is_over) return false;
+                this.is_ajax = true;
+                _ajax({
+                    url: '/api/user/userPowerRecord',
+                    data: {
+                        page: this.page
+                    },
+                    success: res => {
+                        if (res.code == 1) {
+                            this.list = this.list.concat(res.data.list);
+                            this.page++;
+                            this.NR = res.data.NR;
+                            this.NS = res.data.NS;
+                            this.NA = res.data.NA;
+                            this.NB = res.data.NB;
+                        } else {
+                            _msg(res.msg);
+                            this.is_over = true;
+                        }
+                        this.is_ajax = false;
+                    }
+                }, 1);
+            }
+        }
+    })
+</script>
+
+</html>

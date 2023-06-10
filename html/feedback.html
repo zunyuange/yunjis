@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="maximum-scale=1.0,minimum-scale=1.0,user-scalable=0,width=device-width,initial-scale=1.0" />
+    <title>title</title>
+    <link rel="stylesheet" type="text/css" href="../app/aui.css" />
+    <style>
+        .btn {
+            margin-top: 1rem;
+            padding: 1rem;
+        }
+        
+        .form {
+            width: 100%;
+            padding: 0.5rem 0.75rem;
+        }
+        
+        .label {
+            padding: 0.5rem 0.25rem;
+            font-weight: bold;
+        }
+        
+        .textarea {
+            background-color: #fff;
+            border-radius: 0.25rem;
+            padding: 0.5rem;
+            line-height: 1rem;
+            height: 6rem;
+        }
+        
+        .images {
+            width: 100%;
+            display: flex;
+        }
+        
+        .image {
+            width: 5.25rem;
+            height: 5.25rem;
+            object-fit: cover;
+            border-radius: 0.25rem;
+        }
+        
+        .image+.image {
+            margin-left: 0.75rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="form">
+            <div class="label">反馈内容</div>
+            <textarea class="textarea" placeholder="请输入您的建议或问题，最多200字" rows="5" maxlength="200" v-model="content"></textarea>
+            <div class="label">相关图片 <span>(最多3张)</span></div>
+            <div class="images">
+                <img class="image" :src="image" alt="" v-for="(image,index) in images" @click="delImg(index);">
+                <img class="image" src="../image/upload.png" alt="" v-show="images.length < 3" @click="addImg">
+            </div>
+        </div>
+        <div class="btn">
+            <a class="aui-btn aui-btn-block aui-btn-info" @click="save">提交</a>
+        </div>
+    </div>
+</body>
+<script type="text/javascript" src="../script/api.js"></script>
+<script type="text/javascript" src="../app/app.js"></script>
+<script type="text/javascript" src="../app/vue.min.js"></script>
+<script type="text/javascript">
+    apiready = function() {
+
+    };
+
+    const app = new Vue({
+        el: '#app',
+        data: {
+            content: '',
+            images: []
+        },
+        methods: {
+            addImg() {
+                if (this.images.length >= 3) return false;
+                api.getPicture({
+                    sourceType: 'library',
+                    encodingType: 'jpg',
+                    mediaValue: 'pic',
+                    destinationType: 'url',
+                    allowEdit: true,
+                    quality: 100
+                }, function(ret, err) {
+                    if (ret && ret.data) {
+                        console.log(ret.data);
+                        app.images.push(ret.data);
+                    }
+                });
+            },
+            delImg(i) {
+                api.actionSheet({
+                    cancelTitle: '取消',
+                    destructiveTitle: '删除图片'
+                }, function(ret, err) {
+                    var index = ret.buttonIndex;
+                    if (index == 1) {
+                        app.images.splice(i, 1);
+                    }
+                });
+            },
+            save() {
+                if (!this.content) return _msg('反馈内容不能为空');
+                var files = {};
+                if (this.images.length > 0) {
+                    files['images[]'] = this.images;
+                }
+                _ajax({
+                    url: '/api/user/feedback',
+                    data: {
+                        content: this.content
+                    },
+                    files: files,
+                    success: res => {
+                        _msg(res.msg);
+                        if (res.code == 1) {
+                            this.content = '';
+                            this.images = [];
+                        }
+                    }
+                }, 1);
+            }
+        }
+    });
+</script>
+
+</html>
